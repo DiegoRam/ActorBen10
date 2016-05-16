@@ -1,11 +1,9 @@
 package com.ben
 
 import java.util.concurrent.TimeUnit
-
 import akka.actor.{Props, ActorSystem}
 import com.ben.actors.{DefaultTimeOut, User, KainGreenActor}
 import akka.pattern.ask
-
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
