@@ -2,7 +2,7 @@ package com.ben
 
 import java.util.concurrent.TimeUnit
 import akka.actor.{Props, ActorSystem}
-import com.ben.actors.{DefaultTimeOut, User, KainGreenActor}
+import com.ben.actors.{MainActor, DefaultTimeOut, User, KainGreenActor}
 import akka.pattern.ask
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
@@ -17,14 +17,16 @@ object BenApp extends App with DefaultTimeOut {
     val actorSystem = ActorSystem("benApp")
     implicit val ec = actorSystem.dispatcher
 
-    val myBenMailBox = actorSystem.actorOf(Props(new KainGreenActor()), "benActor")
+    //val myBenMailBox = actorSystem.actorOf(Props(new KainGreenActor()), "benActor")
 
-    val myBenMailBox2 = actorSystem.actorSelection("benApp/benActor")
+    val mainActor = actorSystem.actorOf(Props(new MainActor()), "mainActor")
+    mainActor ! MainActor.StartUp
+    val myBenMailBox2 = actorSystem.actorSelection("user/mainActor/kainGreenChild")
 
     import KainGreenActor._
 
-    val fheavyComp = (myBenMailBox ? HeavyLifting("Sebas")).mapTo[Option[Int]]
-    val fSaveUser = myBenMailBox ? SaveUser(User("Sebas", 1L))
+    val fheavyComp = (myBenMailBox2 ? HeavyLifting("Sebas")).mapTo[Option[Int]]
+    val fSaveUser = myBenMailBox2 ? SaveUser(User("Sebas", 1L))
 
     fheavyComp.onComplete{
       case Success(optInt) => println("result: " + optInt.get)
@@ -36,11 +38,11 @@ object BenApp extends App with DefaultTimeOut {
       case Failure(ex) => println("failed!",ex)
     }
 
-    actorSystem.scheduler.schedule(
+    /*actorSystem.scheduler.schedule(
       Duration.Zero,
       Duration.create(2, TimeUnit.SECONDS),
       myBenMailBox,
       SaveUser(User("BENITEZ", 2L))
-    )
+    )*/
   }
 }
